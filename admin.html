@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#c97f68" />
+  <title>按摩預約｜管理端</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="admin-shell">
+    <header class="admin-header">
+      <div>
+        <p class="section-kicker">🗂️ 羅東國中教師會</p>
+        <h1>教師節按摩預約・管理端</h1>
+        <p class="muted">查看總體名額、各時段狀況與完整預約總表。</p>
+      </div>
+      <a class="back-link" href="index.html">← 回預約頁</a>
+    </header>
+
+    <section id="loginPanel" class="section-card admin-login-card hidden">
+      <p class="section-kicker">🔐 管理者登入</p>
+      <h2>請輸入管理密碼</h2>
+      <form id="adminLoginForm" class="admin-login-form">
+        <input id="adminPassword" type="password" autocomplete="current-password" placeholder="管理密碼" required />
+        <button class="primary-btn" type="submit">登入管理端</button>
+      </form>
+      <p id="loginStatus" class="form-status"></p>
+    </section>
+
+    <div id="adminDashboard" class="hidden">
+      <section class="stats-grid">
+        <div class="stat-card"><span>👥 已預約</span><b id="bookedCount">—</b><small>人</small></div>
+        <div class="stat-card"><span>💺 剩餘名額</span><b id="remainingCount">—</b><small>人</small></div>
+        <div class="stat-card"><span>☕ 自備杯</span><b id="cupCount">—</b><small>人</small></div>
+      </section>
+
+      <div class="admin-actions">
+        <button id="exportBtn">📥 匯出 CSV</button>
+        <button id="refreshBtn">🔄 重新整理</button>
+        <button id="logoutBtn" class="admin-secondary-action">🚪 登出</button>
+      </div>
+
+      <section class="admin-table-wrap">
+        <div class="table-title">📊 各時段統計</div>
+        <table>
+          <thead><tr><th>時段</th><th>已登記</th><th>剩餘</th><th>名單</th></tr></thead>
+          <tbody id="slotTable"></tbody>
+        </table>
+      </section>
+
+      <section class="admin-table-wrap" style="margin-top: 14px;">
+        <div class="table-title">🧾 預約總表</div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>姓名</th>
+              <th>Email</th>
+              <th>時段</th>
+              <th>自備杯</th>
+              <th>登記時間</th>
+            </tr>
+          </thead>
+          <tbody id="bookingTableBody"></tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+  <script src="config.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
