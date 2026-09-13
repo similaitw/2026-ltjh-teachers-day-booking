@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { ensureSchema, getSql, json, normalizeEmail, readJson } from '../lib/db.js';
+import { ensureSchema, getSql, hashToken, json, normalizeEmail, readJson } from '../lib/db.js';
 
 const VALID_SLOTS = new Set(Array.from({ length: 12 }, (_, i) => {
   const start = 13 * 60 + i * 15;
@@ -26,6 +26,8 @@ export default async function handler(req, res) {
 
     const sql = getSql();
     const id = crypto.randomUUID();
+    const manageToken = crypto.randomBytes(32).toString('base64url');
+    const tokenHash = hashToken(manageToken);
     const result = await sql`
       WITH event_lock AS (
         SELECT pg_advisory_xact_lock(hashtext(${eventId})) AS locked
@@ -46,8 +48,8 @@ export default async function handler(req, res) {
           AND b.status = 'active'
       ),
       inserted AS (
-        INSERT INTO bookings (id, event_id, name, email, slot, bring_cup, status)
-        SELECT ${id}::uuid, ${eventId}, ${name}, ${email}, ${slot}, ${bringCup}, 'active'
+        INSERT INTO bookings (id, event_id, name, email, slot, bring_cup, status, manage_token_hash)
+        SELECT ${id}::uuid, ${eventId}, ${name}, ${email}, ${slot}, ${bringCup}, 'active', ${tokenHash}
         FROM event_lock, slot_count
         WHERE NOT EXISTS (SELECT 1 FROM existing)
           AND slot_count.used < ${capacity}
@@ -65,9 +67,9 @@ export default async function handler(req, res) {
     `;
 
     const row = result[0];
-    if (row?.result === 'duplicate') return json(res, 409, { ok: false, message: '這個 Email 已經有預約時段' });
+    if (row?.result === 'duplicate') return json(res, 409, { ok: false, message: '這個 Email 已經有預約時段；若需要協助更改，請洽教師會管理者' });
     if (row?.result === 'full') return json(res, 409, { ok: false, message: '這個時段剛好額滿了，請選其他時段' });
-    return json(res, 200, { ok: true, booking: row?.booking || null });
+    return json(res, 200, { ok: true, booking: row?.booking || null, manageToken });
   } catch (error) {
     console.error(error);
     return json(res, 500, { ok: false, message: '預約失敗，請稍後再試' });
