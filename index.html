@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#c97f68" />
+  <title>羅東國中教師節・暖心按摩預約</title>
+  <meta name="description" content="羅東國中教師會 9/16 教師節按摩宣導服務預約" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="eyebrow">🤝 羅東國中教師會 × 宜蘭縣盲人福利協進會</div>
+      <h1>💗 教師節・暖心按摩預約</h1>
+      <p class="hero-copy">給辛苦的老師一段放鬆時間。每梯 15 分鐘、限 8 人，請選擇適合的時段。</p>
+      <div class="hero-meta">
+        <div><span>📅</span><b>9/16（三）</b></div>
+        <div><span>🕐</span><b>13:00–16:00</b></div>
+        <div><span>📍</span><b>大表藝教室</b></div>
+      </div>
+    </header>
+
+    <main>
+      <section class="notice coffee-card" aria-label="茶飲提醒">
+        <div class="notice-icon">☕</div>
+        <div>
+          <h2>按摩之外，也來喝杯飲料</h2>
+          <p>場外備有 <b>85°C 咖啡與紅茶</b>，歡迎自備環保杯，一起減少一次性杯具。</p>
+          <div class="inline-tags">
+            <span>☕ 85°C 咖啡</span>
+            <span>🧋 紅茶</span>
+            <span>🌿 自備杯更環保</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-card summary-card">
+        <div>
+          <p class="section-kicker">✨ 即時預約</p>
+          <h2>選擇按摩時段</h2>
+          <p class="muted">每時段最多 8 人。為維持服務品質，也讓按摩師適度休息。</p>
+        </div>
+        <div class="summary-pill" id="summaryPill">載入中…</div>
+      </section>
+
+      <section id="myBookingCard" class="my-booking hidden" aria-live="polite"></section>
+
+      <section class="slots-grid" id="slotsGrid" aria-label="預約時段"></section>
+
+      <section class="section-card tips-card">
+        <h2>📌 預約小提醒</h2>
+        <div class="tips-list">
+          <div><span>👤</span><p>每位老師限登記一個時段。</p></div>
+          <div><span>⏰</span><p>建議提前 3–5 分鐘抵達大表藝教室。</p></div>
+          <div><span>🔄</span><p>若臨時無法前往，請回到本頁取消，將名額留給其他老師。</p></div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>羅東國中教師會 敬祝教師節快樂</p>
+      <a href="admin.html" class="admin-link">🗂️ 管理端</a>
+    </footer>
+  </div>
+
+  <div class="modal-backdrop hidden" id="bookingModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-sheet">
+      <button class="close-btn" id="closeModal" aria-label="關閉">×</button>
+      <p class="section-kicker">📝 預約資料</p>
+      <h2 id="modalTitle">確認時段</h2>
+      <div class="selected-slot" id="selectedSlot"></div>
+      <form id="bookingForm">
+        <label>
+          姓名
+          <input id="nameInput" name="name" type="text" autocomplete="name" maxlength="20" placeholder="請輸入姓名" required />
+        </label>
+        <label>
+          校內 Email
+          <input id="emailInput" name="email" type="email" autocomplete="email" maxlength="80" placeholder="例如 teacher@tmail.ilc.edu.tw" required />
+          <small>用來確認每人僅登記一個時段，不會公開顯示。</small>
+        </label>
+        <label class="check-row">
+          <input id="cupInput" name="bringCup" type="checkbox" />
+          <span>我會自備環保杯 ☕</span>
+        </label>
+        <button type="submit" class="primary-btn" id="submitBtn">確認預約</button>
+      </form>
+      <p class="form-status" id="formStatus" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <div class="toast hidden" id="toast" role="status"></div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
