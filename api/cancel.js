@@ -1,4 +1,4 @@
-import { ensureSchema, getSql, json, normalizeEmail, readJson } from '../lib/db.js';
+import { ensureSchema, getSql, hashToken, json, readJson } from '../lib/db.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return json(res, 405, { ok: false, message: 'Method not allowed' });
@@ -6,8 +6,9 @@ export default async function handler(req, res) {
     await ensureSchema();
     const body = await readJson(req);
     const eventId = String(body.eventId || 'ltjh-teachers-day-2026');
-    const email = normalizeEmail(body.email);
-    if (!email) return json(res, 400, { ok: false, message: '缺少 Email' });
+    const manageToken = String(body.manageToken || '');
+    if (!manageToken) return json(res, 400, { ok: false, message: '缺少預約管理資訊' });
+    const tokenHash = hashToken(manageToken);
 
     const sql = getSql();
     const rows = await sql`
@@ -18,7 +19,7 @@ export default async function handler(req, res) {
       SET status = 'cancelled', cancelled_at = now(), updated_at = now()
       FROM event_lock
       WHERE b.event_id = ${eventId}
-        AND lower(b.email) = ${email}
+        AND b.manage_token_hash = ${tokenHash}
         AND b.status = 'active'
       RETURNING b.id
     `;
