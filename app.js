@@ -14,7 +14,7 @@
   let selectedSlot = null;
   let state = { counts: {}, booking: null };
 
-  const identityKey = `${cfg.eventId}:identity`;
+  const manageTokenKey = `${cfg.eventId}:manage-token`;
 
   function buildSlots(start, end, minutes) {
     const result = [];
@@ -47,20 +47,20 @@
   }
 
   async function api(action, payload = {}) {
-    const identity = localStorage.getItem(identityKey) || "";
+    const manageToken = localStorage.getItem(manageTokenKey) || "";
     if (action === "status") {
       const qs = new URLSearchParams({ eventId: cfg.eventId });
-      if (identity) qs.set("email", identity);
+      if (manageToken) qs.set("manageToken", manageToken);
       return request(`/api/status?${qs.toString()}`, { method: "GET" });
     }
     if (action === "book") {
       return request("/api/book", { method: "POST", body: JSON.stringify({ eventId: cfg.eventId, ...payload }) });
     }
     if (action === "change") {
-      return request("/api/change", { method: "POST", body: JSON.stringify({ eventId: cfg.eventId, email: identity, ...payload }) });
+      return request("/api/change", { method: "POST", body: JSON.stringify({ eventId: cfg.eventId, manageToken, ...payload }) });
     }
     if (action === "cancel") {
-      return request("/api/cancel", { method: "POST", body: JSON.stringify({ eventId: cfg.eventId, email: identity }) });
+      return request("/api/cancel", { method: "POST", body: JSON.stringify({ eventId: cfg.eventId, manageToken }) });
     }
     throw new Error("未知操作");
   }
@@ -126,7 +126,7 @@
     } else {
       document.getElementById("emailInput").disabled = false;
       document.getElementById("nameInput").value = "";
-      document.getElementById("emailInput").value = localStorage.getItem(identityKey) || "";
+      document.getElementById("emailInput").value = "";
       document.getElementById("cupInput").checked = false;
       submitBtn.textContent = "確認預約";
     }
@@ -153,8 +153,7 @@
           slot: selectedSlot,
           bringCup: document.getElementById("cupInput").checked
         });
-        const bookedEmail = (booked.booking && booked.booking.email) || email;
-        localStorage.setItem(identityKey, bookedEmail);
+        if (booked.manageToken) localStorage.setItem(manageTokenKey, booked.manageToken);
         showToast("預約成功！期待活動當天見");
       }
       hideModal(); await refresh();
@@ -169,7 +168,7 @@
     if (!confirm("確定要取消目前的按摩預約嗎？")) return;
     try {
       await api("cancel");
-      localStorage.removeItem(identityKey);
+      localStorage.removeItem(manageTokenKey);
       showToast("預約已取消");
       await refresh();
     } catch (e) { showToast(e.message); }
