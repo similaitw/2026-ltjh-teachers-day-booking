@@ -1,0 +1,222 @@
+/* Three selectable skins. Loaded after styles.css so booking behavior stays untouched. */
+html[data-skin="wood"] {
+  --bg: #f7f4ee;
+  --surface: #fffdf9;
+  --surface-2: #f3eee6;
+  --ink: #3f342d;
+  --muted: #74675f;
+  --brand: #8f6b55;
+  --brand-2: #aa8871;
+  --brand-deep: #6f5140;
+  --green: #64856c;
+  --amber: #ad7f45;
+  --red: #b8675f;
+  --line: #e8dfd3;
+  --shadow: 0 18px 50px rgba(80,58,45,.09);
+  --skin-page-a: #e9dfd3;
+  --skin-page-b: #f3eee7;
+  --skin-page-c: #f7f4ee;
+  --skin-hero-a: #9b7a64;
+  --skin-hero-b: #725441;
+  --skin-soft: #efe7dc;
+  --skin-soft-2: #f7f1e9;
+  --skin-soft-border: #e3d6c8;
+  --skin-card-a: #fffefb;
+  --skin-card-b: #f9f6f1;
+  --skin-toast: #514238;
+}
+
+html[data-skin="sage"] {
+  --bg: #f3f6f2;
+  --surface: #fcfdfb;
+  --surface-2: #edf2ed;
+  --ink: #2f3b33;
+  --muted: #667269;
+  --brand: #6f8d77;
+  --brand-2: #8ba691;
+  --brand-deep: #506a58;
+  --green: #547e63;
+  --amber: #a27e47;
+  --red: #af625f;
+  --line: #dce6dd;
+  --shadow: 0 18px 50px rgba(61,83,66,.09);
+  --skin-page-a: #dfe8df;
+  --skin-page-b: #edf2ec;
+  --skin-page-c: #f4f7f3;
+  --skin-hero-a: #76937e;
+  --skin-hero-b: #55705f;
+  --skin-soft: #e3ece4;
+  --skin-soft-2: #f0f5f0;
+  --skin-soft-border: #d4e1d6;
+  --skin-card-a: #fdfefc;
+  --skin-card-b: #f3f7f3;
+  --skin-toast: #3d5044;
+}
+
+html[data-skin="navy"] {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --surface-2: #edf1f5;
+  --ink: #243140;
+  --muted: #657181;
+  --brand: #4c6680;
+  --brand-2: #71889d;
+  --brand-deep: #334a62;
+  --green: #4f7b68;
+  --amber: #a5814d;
+  --red: #b85f62;
+  --line: #dbe2ea;
+  --shadow: 0 18px 52px rgba(38,58,80,.10);
+  --skin-page-a: #dfe5ec;
+  --skin-page-b: #edf1f5;
+  --skin-page-c: #f5f7fa;
+  --skin-hero-a: #536f8a;
+  --skin-hero-b: #30465c;
+  --skin-soft: #e7edf3;
+  --skin-soft-2: #f1f4f7;
+  --skin-soft-border: #d5dee8;
+  --skin-card-a: #ffffff;
+  --skin-card-b: #f4f7fa;
+  --skin-toast: #2c3d4f;
+}
+
+html[data-skin] body {
+  background: linear-gradient(180deg, var(--skin-page-a) 0, var(--skin-page-b) 190px, var(--skin-page-c) 430px);
+  transition: background .22s ease, color .22s ease;
+}
+
+html[data-skin] .hero {
+  background: linear-gradient(145deg, var(--skin-hero-a), var(--skin-hero-b));
+}
+
+html[data-skin] .notice,
+html[data-skin] .section-card,
+html[data-skin] .my-booking {
+  border-color: var(--skin-soft-border);
+  box-shadow: 0 8px 30px color-mix(in srgb, var(--brand-deep) 8%, transparent);
+}
+
+html[data-skin] .notice-icon,
+html[data-skin] .slot-icon,
+html[data-skin] .tips-list span,
+html[data-skin] .close-btn {
+  background: var(--skin-soft);
+  color: var(--brand-deep);
+}
+
+html[data-skin] .inline-tags span,
+html[data-skin] .summary-pill,
+html[data-skin] .selected-slot,
+html[data-skin] .secondary-btn,
+html[data-skin] .admin-secondary-action {
+  background: var(--skin-soft-2) !important;
+  color: var(--brand-deep) !important;
+  border-color: var(--skin-soft-border) !important;
+}
+
+html[data-skin] .slot-card,
+html[data-skin] .stat-card {
+  background: linear-gradient(180deg, var(--skin-card-a) 0, var(--skin-card-b) 100%);
+  border-color: var(--line);
+}
+
+html[data-skin] .my-booking {
+  background: linear-gradient(180deg, var(--skin-card-a) 0, var(--skin-soft-2) 100%);
+}
+
+html[data-skin] .check-row,
+html[data-skin] th {
+  background: var(--skin-soft-2);
+}
+
+html[data-skin] th,
+html[data-skin] td {
+  border-bottom-color: var(--line);
+}
+
+html[data-skin] input[type="text"],
+html[data-skin] input[type="email"],
+html[data-skin] .admin-login-form input[type="password"] {
+  border-color: var(--skin-soft-border);
+  background: var(--surface);
+}
+
+html[data-skin] input:focus,
+html[data-skin] .admin-login-form input[type="password"]:focus {
+  border-color: var(--brand-2);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-2) 20%, transparent);
+}
+
+html[data-skin] .toast { background: var(--skin-toast); }
+html[data-skin] .slot-btn:disabled { background: color-mix(in srgb, var(--muted) 20%, var(--surface)); color: var(--muted); }
+
+/* Theme switcher */
+.skin-switcher {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 2px 10px;
+}
+
+.skin-switcher-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: 0 6px 22px color-mix(in srgb, var(--brand-deep) 8%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.skin-label {
+  padding: 0 7px 0 9px;
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.skin-choice {
+  min-height: 34px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 5px 9px 5px 7px;
+  background: transparent;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .78rem;
+  font-weight: 800;
+  line-height: 1;
+  transition: background .15s ease, color .15s ease, border-color .15s ease, transform .15s ease;
+}
+
+.skin-choice:hover { background: var(--skin-soft-2); color: var(--ink); }
+.skin-choice:active { transform: scale(.97); }
+.skin-choice[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--brand-deep);
+  border-color: var(--skin-soft-border);
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--brand-deep) 10%, transparent);
+}
+
+.skin-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.82);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.08);
+  flex: 0 0 auto;
+}
+.skin-swatch.wood { background: linear-gradient(135deg, #a48168 50%, #748a75 50%); }
+.skin-swatch.sage { background: linear-gradient(135deg, #6f8d77 50%, #dfe8df 50%); }
+.skin-swatch.navy { background: linear-gradient(135deg, #405c75 50%, #d8b36f 50%); }
+
+@media (max-width: 620px) {
+  .skin-switcher { justify-content: center; margin-bottom: 8px; }
+  .skin-switcher-inner { width: 100%; justify-content: center; }
+  .skin-label { display: none; }
+  .skin-choice { flex: 1 1 0; justify-content: center; padding-inline: 7px; }
+}
