@@ -1,4 +1,4 @@
-import { ensureSchema, getSql, json, normalizeEmail } from '../lib/db.js';
+import { ensureSchema, getSql, hashToken, json } from '../lib/db.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return json(res, 405, { ok: false, message: 'Method not allowed' });
@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     await ensureSchema();
     const sql = getSql();
     const eventId = String(req.query.eventId || 'ltjh-teachers-day-2026');
-    const email = normalizeEmail(req.query.email);
+    const manageToken = String(req.query.manageToken || '');
 
     const countsRows = await sql`
       SELECT slot, count(*)::int AS used
@@ -16,11 +16,12 @@ export default async function handler(req, res) {
     `;
 
     let booking = null;
-    if (email) {
+    if (manageToken) {
+      const tokenHash = hashToken(manageToken);
       const rows = await sql`
         SELECT id, name, email, slot, bring_cup AS "bringCup", created_at AS "createdAt"
         FROM bookings
-        WHERE event_id = ${eventId} AND lower(email) = ${email} AND status = 'active'
+        WHERE event_id = ${eventId} AND manage_token_hash = ${tokenHash} AND status = 'active'
         LIMIT 1
       `;
       booking = rows[0] || null;
