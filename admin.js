@@ -52,7 +52,6 @@
     const booked = rows.length; const total = slots.length * cfg.capacityPerSlot;
     document.getElementById('bookedCount').textContent = booked;
     document.getElementById('remainingCount').textContent = total - booked;
-    document.getElementById('cupCount').textContent = rows.filter(x=>x.bringCup).length;
     document.getElementById('slotTable').innerHTML = slots.map(s=>{
       const r = rows.filter(x=>x.slot===s); const left = cfg.capacityPerSlot-r.length;
       return `<tr><td><b>${s}</b></td><td>${r.length} / ${cfg.capacityPerSlot}</td><td>${left}</td><td>${r.length ? r.map(x=>escapeHtml(x.name)).join('、') : '<span class="empty-cell">—</span>'}</td></tr>`;
@@ -64,10 +63,9 @@
         <td>${escapeHtml(r.name)}</td>
         <td>${escapeHtml(r.email)}</td>
         <td><b>${escapeHtml(r.slot)}</b></td>
-        <td>${r.bringCup ? '<span class="badge-yes">有</span>' : '<span class="badge-no">無</span>'}</td>
         <td>${formatDate(r.createdAt)}</td>
       </tr>`;
-    }).join('') : `<tr><td colspan="6" class="empty-cell">目前尚無預約資料</td></tr>`;
+    }).join('') : `<tr><td colspan="5" class="empty-cell">目前尚無預約資料</td></tr>`;
     window.__rows = rows;
   }
 
@@ -97,8 +95,8 @@
     loginPanel.classList.remove('hidden');
   };
   document.getElementById('exportBtn').onclick=()=>{
-    const rows=window.__rows||[]; const head=['姓名','Email','時段','自備杯','建立時間'];
-    const csv=[head,...rows.map(r=>[r.name,r.email,r.slot,r.bringCup?'是':'否',r.createdAt||''])].map(a=>a.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const rows=window.__rows||[]; const head=['姓名','Email','時段','建立時間'];
+    const csv=[head,...rows.map(r=>[r.name,r.email,r.slot,r.createdAt||''])].map(a=>a.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
     const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='教師節按摩預約名單.csv'; a.click(); URL.revokeObjectURL(a.href);
   };
 
