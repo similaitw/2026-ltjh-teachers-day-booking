@@ -107,7 +107,7 @@
       <div><p class="section-kicker">✅ 我的預約</p><h2>${escapeHtml(state.booking.name)}老師</h2><div class="my-booking-time">${state.booking.slot}</div></div>
       <div aria-hidden="true" style="font-size:2rem">💗</div>
     </div>
-    <p class="muted">${cfg.eventLabel}・${cfg.venue}${state.booking.bringCup ? "・已勾選自備杯 ☕" : ""}</p>
+    <p class="muted">${cfg.eventLabel}・${cfg.venue}</p>
     <div class="booking-actions"><button class="secondary-btn" id="changeHint">更改時段</button><button class="danger-btn" id="cancelBtn">取消預約</button></div>`;
     document.getElementById("changeHint").onclick = () => { document.querySelector(".slots-grid").scrollIntoView({behavior:"smooth"}); showToast("請直接選擇新的時段"); };
     document.getElementById("cancelBtn").onclick = cancelBooking;
@@ -121,13 +121,11 @@
       document.getElementById("nameInput").value = state.booking.name || "";
       document.getElementById("emailInput").value = state.booking.email || "";
       document.getElementById("emailInput").disabled = true;
-      document.getElementById("cupInput").checked = !!state.booking.bringCup;
       submitBtn.textContent = "確認更改時段";
     } else {
       document.getElementById("emailInput").disabled = false;
       document.getElementById("nameInput").value = "";
       document.getElementById("emailInput").value = "";
-      document.getElementById("cupInput").checked = false;
       submitBtn.textContent = "確認預約";
     }
     modal.classList.remove("hidden");
@@ -143,15 +141,14 @@
     submitBtn.disabled = true; formStatus.textContent = "";
     try {
       if (state.booking) {
-        await api("change", { slot: selectedSlot, bringCup: document.getElementById("cupInput").checked });
+        await api("change", { slot: selectedSlot });
         showToast("時段已更新");
       } else {
         const email = document.getElementById("emailInput").value.trim().toLowerCase();
         const booked = await api("book", {
           name: document.getElementById("nameInput").value,
           email,
-          slot: selectedSlot,
-          bringCup: document.getElementById("cupInput").checked
+          slot: selectedSlot
         });
         if (booked.manageToken) localStorage.setItem(manageTokenKey, booked.manageToken);
         showToast("預約成功！期待活動當天見");
