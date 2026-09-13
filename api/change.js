@@ -1,4 +1,4 @@
-import { ensureSchema, getSql, json, normalizeEmail, readJson } from '../lib/db.js';
+import { ensureSchema, getSql, hashToken, json, readJson } from '../lib/db.js';
 
 const VALID_SLOTS = new Set(Array.from({ length: 12 }, (_, i) => {
   const start = 13 * 60 + i * 15;
@@ -13,12 +13,13 @@ export default async function handler(req, res) {
     await ensureSchema();
     const body = await readJson(req);
     const eventId = String(body.eventId || 'ltjh-teachers-day-2026');
-    const email = normalizeEmail(body.email);
+    const manageToken = String(body.manageToken || '');
+    const tokenHash = hashToken(manageToken);
     const slot = String(body.slot || '');
     const bringCup = !!body.bringCup;
     const capacity = 8;
 
-    if (!email || !VALID_SLOTS.has(slot)) return json(res, 400, { ok: false, message: '資料不完整' });
+    if (!manageToken || !VALID_SLOTS.has(slot)) return json(res, 400, { ok: false, message: '資料不完整' });
 
     const sql = getSql();
     const result = await sql`
@@ -29,7 +30,7 @@ export default async function handler(req, res) {
         SELECT b.id, b.slot
         FROM bookings b, event_lock
         WHERE b.event_id = ${eventId}
-          AND lower(b.email) = ${email}
+          AND b.manage_token_hash = ${tokenHash}
           AND b.status = 'active'
         LIMIT 1
       ),
@@ -61,7 +62,7 @@ export default async function handler(req, res) {
     `;
 
     const row = result[0];
-    if (row?.result === 'not_found') return json(res, 404, { ok: false, message: '找不到原預約' });
+    if (row?.result === 'not_found') return json(res, 404, { ok: false, message: '找不到原預約，請重新整理或洽管理者' });
     if (row?.result === 'full') return json(res, 409, { ok: false, message: '新時段已額滿' });
     return json(res, 200, { ok: true, booking: row?.booking || null });
   } catch (error) {
