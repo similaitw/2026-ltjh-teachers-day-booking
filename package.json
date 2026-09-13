@@ -1,0 +1,13 @@
+{
+  "name": "ltjh-teachers-day-booking",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "check": "node --check app.js && node --check admin.js && node --check lib/db.js && node --check lib/admin-auth.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.0"
+  }
+}
