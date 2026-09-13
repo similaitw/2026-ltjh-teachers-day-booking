@@ -1,0 +1,118 @@
+name: Production Smoke Test
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      SITE: https://2026-ltjh-teachers-day-booking.vercel.app
+      EVENT_ID: ltjh-teachers-day-2026
+    steps:
+      - name: Wait for production and run end-to-end smoke test
+        shell: bash
+        run: |
+          node <<'NODE'
+          const site = process.env.SITE.replace(/\/$/, '');
+          const eventId = process.env.EVENT_ID;
+          const sleep = ms => new Promise(r => setTimeout(r, ms));
+          const slots = Array.from({ length: 12 }, (_, i) => {
+            const start = 13 * 60 + i * 15;
+            const end = start + 15;
+            const fmt = n => `${String(Math.floor(n / 60)).padStart(2,'0')}:${String(n % 60).padStart(2,'0')}`;
+            return `${fmt(start)}–${fmt(end)}`;
+          });
+
+          async function json(path, options = {}) {
+            const res = await fetch(site + path, options);
+            let body = {};
+            try { body = await res.json(); } catch {}
+            return { res, body };
+          }
+
+          let health;
+          for (let i = 0; i < 30; i++) {
+            try {
+              health = await json('/api/health');
+              if (health.res.ok && health.body?.ok && health.body?.database === 'connected') break;
+            } catch {}
+            await sleep(5000);
+          }
+          if (!health?.res?.ok || health.body?.database !== 'connected') {
+            throw new Error(`Health check failed: ${JSON.stringify(health?.body || {})}`);
+          }
+          console.log('PASS health:', health.body);
+
+          const root = await fetch(site + '/');
+          const rootText = await root.text();
+          if (!root.ok || !rootText.includes('教師節')) throw new Error(`Homepage failed: ${root.status}`);
+          console.log('PASS homepage:', root.status);
+
+          const admin = await fetch(site + '/admin.html');
+          const adminText = await admin.text();
+          if (!admin.ok || !adminText.includes('管理')) throw new Error(`Admin page failed: ${admin.status}`);
+          console.log('PASS admin page:', admin.status);
+
+          const unauthorized = await fetch(site + `/api/admin-list?eventId=${encodeURIComponent(eventId)}`);
+          if (![401, 403].includes(unauthorized.status)) {
+            throw new Error(`Admin API should reject unauthenticated access, got ${unauthorized.status}`);
+          }
+          console.log('PASS admin protection:', unauthorized.status);
+
+          const status = await json(`/api/status?eventId=${encodeURIComponent(eventId)}`);
+          if (!status.res.ok || !status.body?.ok) throw new Error(`Status failed: ${status.res.status}`);
+          const counts = status.body.counts || {};
+          const available = slots.filter(s => Number(counts[s] || 0) < 8);
+          if (!available.length) throw new Error('All slots are full; cannot perform smoke booking');
+
+          const first = available[0];
+          const second = available[1] || first;
+          const email = `smoke-${process.env.GITHUB_RUN_ID}-${process.env.GITHUB_RUN_ATTEMPT}@example.com`;
+
+          const booked = await json('/api/book', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ eventId, name: '系統驗收測試', email, slot: first, bringCup: true })
+          });
+          if (!booked.res.ok || !booked.body?.ok || !booked.body?.manageToken) {
+            throw new Error(`Booking failed: ${booked.res.status} ${JSON.stringify(booked.body)}`);
+          }
+          const token = booked.body.manageToken;
+          console.log('PASS booking:', first);
+
+          const changed = await json('/api/change', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ eventId, manageToken: token, slot: second, bringCup: false })
+          });
+          if (!changed.res.ok || !changed.body?.ok) {
+            throw new Error(`Change failed: ${changed.res.status} ${JSON.stringify(changed.body)}`);
+          }
+          console.log('PASS change:', first, '->', second);
+
+          const mine = await json(`/api/status?eventId=${encodeURIComponent(eventId)}&manageToken=${encodeURIComponent(token)}`);
+          if (!mine.res.ok || !mine.body?.booking || mine.body.booking.slot !== second) {
+            throw new Error(`Managed booking lookup failed: ${JSON.stringify(mine.body)}`);
+          }
+          console.log('PASS private booking lookup');
+
+          const cancelled = await json('/api/cancel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ eventId, manageToken: token })
+          });
+          if (!cancelled.res.ok || !cancelled.body?.ok) {
+            throw new Error(`Cancel failed: ${cancelled.res.status} ${JSON.stringify(cancelled.body)}`);
+          }
+          console.log('PASS cancel');
+
+          const after = await json(`/api/status?eventId=${encodeURIComponent(eventId)}&manageToken=${encodeURIComponent(token)}`);
+          if (!after.res.ok || after.body?.booking) {
+            throw new Error(`Cancelled booking still visible: ${JSON.stringify(after.body)}`);
+          }
+          console.log('PASS cancelled booking cleanup');
+          NODE
