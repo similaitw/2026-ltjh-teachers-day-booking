@@ -1,0 +1,42 @@
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  z-index: 3;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff1ea;
+  color: var(--muted);
+  font-size: 0;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.close-btn::before {
+  content: "×";
+  display: block;
+  font-size: 1.65rem;
+  line-height: 1;
+  font-weight: 400;
+  pointer-events: none;
+}
+
+.close-btn:hover,
+.close-btn:focus-visible {
+  filter: brightness(.97);
+}
+
+.close-btn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brand) 35%, transparent);
+  outline-offset: 2px;
+}
