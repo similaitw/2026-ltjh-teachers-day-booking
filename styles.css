@@ -142,6 +142,10 @@ th { background: #fff4ee; color: var(--brand-deep); position: sticky; top: 0; }
 .badge-yes { background: #eef8f1; color: var(--green); }
 .badge-no { background: #f8efea; color: var(--muted); }
 .empty-cell { color: var(--muted); }
+.admin-edit-slot { display: flex; gap: 6px; min-width: 210px; }
+.admin-edit-slot select { min-height: 38px; border: 1px solid #e8d0c4; border-radius: 10px; padding: 0 8px; background: white; color: var(--ink); }
+.admin-edit-button { border: 0; border-radius: 10px; padding: 7px 10px; background: #fff1ea; color: var(--brand-deep); font-weight: 800; white-space: nowrap; }
+.admin-edit-button:disabled { opacity: .55; cursor: wait; }
 
 @media (max-width: 620px) {
   .page-shell { padding: 10px 10px 34px; }

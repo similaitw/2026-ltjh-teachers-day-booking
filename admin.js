@@ -58,15 +58,37 @@
     }).join('');
 
     document.getElementById('bookingTableBody').innerHTML = rows.length ? rows.map((r, idx) => {
+      const slotOptions = slots.map(slot => `<option value="${escapeHtml(slot)}" ${slot === r.slot ? 'selected' : ''}>${escapeHtml(slot)}</option>`).join('');
       return `<tr>
         <td>${idx + 1}</td>
         <td>${escapeHtml(r.name)}</td>
         <td>${escapeHtml(r.email)}</td>
         <td><b>${escapeHtml(r.slot)}</b></td>
         <td>${formatDate(r.createdAt)}</td>
+        <td><div class="admin-edit-slot"><select data-slot-for="${escapeHtml(r.id)}">${slotOptions}</select><button type="button" class="admin-edit-button" data-booking-id="${escapeHtml(r.id)}">更新</button></div></td>
       </tr>`;
-    }).join('') : `<tr><td colspan="5" class="empty-cell">目前尚無預約資料</td></tr>`;
+    }).join('') : `<tr><td colspan="6" class="empty-cell">目前尚無預約資料</td></tr>`;
+    document.getElementById('bookingTableBody').querySelectorAll('[data-booking-id]').forEach(button => {
+      button.addEventListener('click', () => changeSlot(button.dataset.bookingId));
+    });
     window.__rows = rows;
+  }
+
+  async function changeSlot(bookingId) {
+    const select = document.querySelector(`[data-slot-for="${bookingId}"]`);
+    if (!select) return;
+    const button = document.querySelector(`[data-booking-id="${bookingId}"]`);
+    button.disabled = true;
+    try {
+      await fetchJson('/api/admin-change', {
+        method: 'POST',
+        body: JSON.stringify({ eventId: cfg.eventId, bookingId, slot: select.value })
+      });
+      await load();
+    } catch (err) {
+      alert(err.message);
+      button.disabled = false;
+    }
   }
 
   loginForm.addEventListener('submit', async (e) => {
