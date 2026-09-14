@@ -58,7 +58,11 @@
     }).join('');
 
     document.getElementById('bookingTableBody').innerHTML = rows.length ? rows.map((r, idx) => {
-      const slotOptions = slots.map(slot => `<option value="${escapeHtml(slot)}" ${slot === r.slot ? 'selected' : ''}>${escapeHtml(slot)}</option>`).join('');
+      const slotOptions = slots.map(slot => {
+        const current = slot === r.slot;
+        const remaining = Math.max(0, cfg.capacityPerSlot - rows.filter(row => row.slot === slot).length);
+        return `<option value="${escapeHtml(slot)}" ${current ? 'selected' : ''} ${!current && remaining === 0 ? 'disabled' : ''}>${escapeHtml(slot)}（${current ? '目前時段' : remaining === 0 ? '已額滿' : `剩 ${remaining} 名`}）</option>`;
+      }).join('');
       return `<tr>
         <td>${idx + 1}</td>
         <td>${escapeHtml(r.name)}</td>
@@ -66,19 +70,45 @@
         <td><b>${escapeHtml(r.slot)}</b></td>
         <td>${formatDate(r.createdAt)}</td>
         <td><div class="admin-edit-slot"><select data-slot-for="${escapeHtml(r.id)}">${slotOptions}</select><button type="button" class="admin-edit-button" data-booking-id="${escapeHtml(r.id)}">更新</button></div></td>
+        <td><button type="button" class="danger-btn" data-cancel-id="${escapeHtml(r.id)}">取消預約</button></td>
       </tr>`;
-    }).join('') : `<tr><td colspan="6" class="empty-cell">目前尚無預約資料</td></tr>`;
+    }).join('') : `<tr><td colspan="7" class="empty-cell">目前尚無預約資料</td></tr>`;
     document.getElementById('bookingTableBody').querySelectorAll('[data-booking-id]').forEach(button => {
       button.addEventListener('click', () => changeSlot(button.dataset.bookingId));
     });
     window.__rows = rows;
+    document.getElementById('bookingTableBody').querySelectorAll('[data-cancel-id]').forEach(button => {
+      button.addEventListener('click', () => cancelBooking(button.dataset.cancelId));
+    });
+  }
+
+  function setRowBusy(bookingId, busy) {
+    const button = document.querySelector(`[data-booking-id="${bookingId}"]`);
+    button?.closest('tr').querySelectorAll('button, select').forEach(control => { control.disabled = busy; });
+  }
+
+  async function cancelBooking(bookingId) {
+    const booking = (window.__rows || []).find(row => row.id === bookingId);
+    if (!booking || !confirm(`確定取消「${booking.name}」老師 ${booking.slot} 的預約嗎？取消後將釋出名額。`)) return;
+    setRowBusy(bookingId, true);
+    try {
+      await fetchJson('/api/admin-cancel', {
+        method: 'POST',
+        body: JSON.stringify({ eventId: cfg.eventId, bookingId })
+      });
+      await load();
+    } catch (err) {
+      alert(err.message);
+      await load();
+    } finally {
+      setRowBusy(bookingId, false);
+    }
   }
 
   async function changeSlot(bookingId) {
     const select = document.querySelector(`[data-slot-for="${bookingId}"]`);
     if (!select) return;
-    const button = document.querySelector(`[data-booking-id="${bookingId}"]`);
-    button.disabled = true;
+    setRowBusy(bookingId, true);
     try {
       await fetchJson('/api/admin-change', {
         method: 'POST',
@@ -87,7 +117,9 @@
       await load();
     } catch (err) {
       alert(err.message);
-      button.disabled = false;
+      await load();
+    } finally {
+      setRowBusy(bookingId, false);
     }
   }
 

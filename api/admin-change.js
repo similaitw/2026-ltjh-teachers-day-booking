@@ -1,5 +1,5 @@
 import { isAdmin } from '../lib/admin-auth.js';
-import { ensureSchema, getSql, json, readJson } from '../lib/db.js';
+import { ensureSchema, getSql, withEventLock, json, readJson } from '../lib/db.js';
 
 const VALID_SLOTS = new Set(Array.from({ length: 12 }, (_, i) => {
   const start = 13 * 60 + i * 15;
@@ -19,12 +19,12 @@ export default async function handler(req, res) {
     const bookingId = String(body.bookingId || '');
     const slot = String(body.slot || '');
 
-    if (!/^[0-9a-f-]{36}$/i.test(bookingId) || !VALID_SLOTS.has(slot)) {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(bookingId) || !VALID_SLOTS.has(slot)) {
       return json(res, 400, { ok: false, message: '預約或時段資料不正確' });
     }
 
     const sql = getSql();
-    const result = await sql`
+    const result = await withEventLock(sql, eventId, sql`
       WITH event_lock AS (
         SELECT pg_advisory_xact_lock(hashtext(${eventId})) AS locked
       ),
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
         (SELECT row_to_json(u) FROM updated u LIMIT 1) AS booking
       FROM event_lock
       LIMIT 1
-    `;
+    `);
 
     const row = result[0];
     if (row?.result === 'not_found') return json(res, 404, { ok: false, message: '找不到這筆有效預約' });

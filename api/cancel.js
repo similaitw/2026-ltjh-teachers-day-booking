@@ -1,4 +1,4 @@
-import { ensureSchema, getSql, hashToken, json, readJson } from '../lib/db.js';
+import { ensureSchema, getSql, withEventLock, hashToken, json, readJson } from '../lib/db.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return json(res, 405, { ok: false, message: 'Method not allowed' });
@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     const tokenHash = hashToken(manageToken);
 
     const sql = getSql();
-    const rows = await sql`
+    const rows = await withEventLock(sql, eventId, sql`
       WITH event_lock AS (
         SELECT pg_advisory_xact_lock(hashtext(${eventId})) AS locked
       )
@@ -22,7 +22,7 @@ export default async function handler(req, res) {
         AND b.manage_token_hash = ${tokenHash}
         AND b.status = 'active'
       RETURNING b.id
-    `;
+    `);
     if (!rows.length) return json(res, 404, { ok: false, message: '找不到有效預約' });
     return json(res, 200, { ok: true });
   } catch (error) {

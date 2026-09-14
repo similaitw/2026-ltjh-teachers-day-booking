@@ -1,4 +1,4 @@
-import { ensureSchema, getSql, hashToken, json, readJson } from '../lib/db.js';
+import { ensureSchema, getSql, withEventLock, hashToken, json, readJson } from '../lib/db.js';
 
 const VALID_SLOTS = new Set(Array.from({ length: 12 }, (_, i) => {
   const start = 13 * 60 + i * 15;
@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     if (!manageToken || !VALID_SLOTS.has(slot)) return json(res, 400, { ok: false, message: '資料不完整' });
 
     const sql = getSql();
-    const result = await sql`
+    const result = await withEventLock(sql, eventId, sql`
       WITH event_lock AS (
         SELECT pg_advisory_xact_lock(hashtext(${eventId})) AS locked
       ),
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
         (SELECT row_to_json(u) FROM updated u LIMIT 1) AS booking
       FROM event_lock
       LIMIT 1
-    `;
+    `);
 
     const row = result[0];
     if (row?.result === 'not_found') return json(res, 404, { ok: false, message: '找不到原預約，請重新整理或洽管理者' });

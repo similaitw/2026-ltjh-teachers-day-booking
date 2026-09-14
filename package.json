@@ -5,9 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vercel dev",
-    "check": "node --check app.js && node --check admin.js && node --check api/admin-change.js && node --check lib/db.js && node --check lib/admin-auth.js"
+    "check": "node --check app.js && node --check admin.js && node --check api/admin-change.js && node --check api/admin-cancel.js && node --check api/book.js && node --check api/change.js && node --check api/cancel.js && node --check lib/db.js && node --check lib/admin-auth.js",
+    "test:integration": "node --experimental-test-module-mocks --test tests/booking.integration.test.js"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.0"
+  },
+  "devDependencies": {
+    "pg": "^8.23.0"
   }
 }

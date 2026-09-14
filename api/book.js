@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { ensureSchema, getSql, hashToken, json, normalizeEmail, readJson } from '../lib/db.js';
+import { ensureSchema, getSql, withEventLock, hashToken, json, normalizeEmail, readJson } from '../lib/db.js';
 
 const VALID_SLOTS = new Set(Array.from({ length: 12 }, (_, i) => {
   const start = 13 * 60 + i * 15;
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     const id = crypto.randomUUID();
     const manageToken = crypto.randomBytes(32).toString('base64url');
     const tokenHash = hashToken(manageToken);
-    const result = await sql`
+    const result = await withEventLock(sql, eventId, sql`
       WITH event_lock AS (
         SELECT pg_advisory_xact_lock(hashtext(${eventId})) AS locked
       ),
@@ -64,7 +64,7 @@ export default async function handler(req, res) {
         (SELECT row_to_json(i) FROM inserted i LIMIT 1) AS booking
       FROM event_lock
       LIMIT 1
-    `;
+    `);
 
     const row = result[0];
     if (row?.result === 'duplicate') return json(res, 409, { ok: false, message: '這個 Email 已經有預約時段；若需要協助更改，請洽教師會管理者' });
